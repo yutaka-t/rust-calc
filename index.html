@@ -2,36 +2,34 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RUST SIMULATOR Raid & Craft</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RUST RAID & CRAFT SIMULATOR</title>
   <style>
+    /* リセットと基本設定 */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-
-    /* Discord iframe環境でスクロールを強制有効化 */
     html {
       height: 100%;
       background-color: #121417;
     }
-
     body {
       min-height: 100vh;
       background-color: #121417;
       color: #e5e7eb;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "BIZ UDPGothic", Meiryo, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       padding: 16px;
-      overflow-y: scroll !important; /* スクロールバーを常時確保 */
+      /* Discord iframe内で確実にスクロールさせる */
+      overflow-y: auto !important;
       overflow-x: hidden;
-      line-height: 1.4;
+      line-height: 1.5;
     }
-
     .container {
-      max-width: 960px;
+      max-width: 900px;
       margin: 0 auto;
-      padding-bottom: 60px; /* 下見切れ防止の余白 */
+      padding-bottom: 40px;
     }
 
     /* ヘッダー */
@@ -43,54 +41,41 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
     }
     .title-area h1 {
       font-size: 18px;
-      font-weight: 800;
+      font-weight: 900;
       color: #ffffff;
-      letter-spacing: 0.5px;
     }
     .title-area p {
       font-size: 11px;
       color: #9ca3af;
-      margin-top: 2px;
-    }
-    .btn-group {
-      display: flex;
-      gap: 8px;
     }
     button {
       background-color: #262a30;
       color: #e5e7eb;
       border: 1px solid #3f444e;
-      padding: 7px 12px;
+      padding: 8px 12px;
       border-radius: 4px;
       font-size: 12px;
-      cursor: pointer;
       font-weight: bold;
-      transition: background 0.15s;
+      cursor: pointer;
+      user-select: none;
     }
-    button:hover {
-      background-color: #32373f;
-      border-color: #555c69;
-    }
-    button:active {
-      transform: translateY(1px);
-    }
+    button:hover { background-color: #32373f; }
+    button:active { transform: scale(0.98); }
     .btn-primary {
       background-color: #cd412b;
       border-color: #cd412b;
       color: #ffffff;
     }
-    .btn-primary:hover {
-      background-color: #b33622;
-    }
+    .btn-primary:hover { background-color: #b33622; }
 
     /* プリセット */
     .preset-box {
       background-color: #1a1d24;
-      padding: 10px 12px;
+      padding: 12px;
       border-radius: 6px;
       border: 1px solid #282d37;
       margin-bottom: 16px;
@@ -99,53 +84,46 @@
       font-size: 11px;
       font-weight: bold;
       color: #9ca3af;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .preset-buttons {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
     }
-    .preset-btn {
-      font-size: 11px;
-      padding: 6px 10px;
-      background: #232730;
-    }
 
-    /* 左右2分割レイアウト */
+    /* レイアウト */
     .grid-layout {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1.2fr 1fr;
       gap: 16px;
       align-items: start;
     }
-    @media (max-width: 650px) {
-      .grid-layout {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 680px) {
+      .grid-layout { grid-template-columns: 1fr; }
     }
 
-    /* カード */
+    /* パネル共通 */
     .card {
       background-color: #1a1d24;
       border-radius: 6px;
       border: 1px solid #282d37;
-      padding: 14px;
+      padding: 16px;
     }
     .card-title {
       font-size: 14px;
       font-weight: bold;
-      color: #f3f4f6;
-      margin-bottom: 12px;
+      color: #ffffff;
+      margin-bottom: 16px;
       border-left: 3px solid #cd412b;
       padding-left: 8px;
     }
 
-    /* フォームパーツ */
-    .field {
-      margin-bottom: 14px;
+    /* 左カラム：入力フォーム */
+    .weapon-select {
+      margin-bottom: 16px;
     }
-    .field label {
+    .weapon-select label {
       display: block;
       font-size: 11px;
       color: #9ca3af;
@@ -156,342 +134,71 @@
       background: #232730;
       border: 1px solid #3f444e;
       color: #ffffff;
-      padding: 8px 10px;
+      padding: 10px;
       border-radius: 4px;
       font-size: 13px;
       outline: none;
     }
-
-    /* リスト項目 */
-    .target-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
     .target-row {
       background: #222630;
       border-radius: 4px;
-      padding: 8px 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .target-info .name {
-      font-size: 13px;
-      font-weight: bold;
-    }
-    .target-info .hp {
-      font-size: 11px;
-      color: #9ca3af;
-    }
+    .target-info .name { font-size: 13px; font-weight: bold; }
+    .target-info .hp { font-size: 11px; color: #9ca3af; }
     .counter {
       display: flex;
       align-items: center;
       gap: 4px;
     }
     .counter button {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       padding: 0;
+      font-size: 16px;
+      background: #2d323c;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      background: #2d323c;
     }
     .counter input {
-      width: 44px;
-      height: 30px;
+      width: 48px;
+      height: 32px;
       text-align: center;
       background: #14171c;
       border: 1px solid #3f444e;
       color: #ffffff;
       border-radius: 4px;
       font-weight: bold;
-      font-size: 13px;
+      font-size: 14px;
     }
 
-    /* 計算結果 */
-    .result-group {
-      margin-bottom: 14px;
-    }
-    .row {
+    /* 右カラム：結果表示 */
+    .res-section { margin-bottom: 20px; }
+    .res-row {
       display: flex;
       justify-content: space-between;
-      padding: 6px 0;
+      padding: 8px 0;
       border-bottom: 1px solid #232731;
-      font-size: 12px;
-    }
-    .row:last-child {
-      border-bottom: none;
-    }
-    .row .label {
-      color: #9ca3af;
-    }
-    .row .val {
-      font-weight: bold;
-      color: #f3f4f6;
-    }
-    .row .val.highlight {
-      color: #38bdf8;
       font-size: 13px;
     }
+    .res-row:last-child { border-bottom: none; }
+    .res-row .lbl { color: #9ca3af; }
+    .res-row .val { font-weight: bold; color: #ffffff; }
+    .res-row .val.highlight { color: #38bdf8; font-size: 14px; }
 
-    /* 総硫黄バッジ */
     .sulfur-box {
       background: #2b130e;
       border: 1px solid #852a18;
-      padding: 12px;
+      padding: 16px;
       border-radius: 4px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 8px;
     }
-    .sulfur-box .title {
-      font-size: 13px;
-      font-weight: bold;
-      color: #fdba74;
-    }
-    .sulfur-box .amount {
-      font-size: 18px;
-      font-weight: 800;
-      color: #f97316;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <div class="header">
-      <div class="title-area">
-        <h1>RUST RAID & CRAFT SIMULATOR</h1>
-        <p>拠点破壊＆爆薬クラフト総素材計算ツール</p>
-      </div>
-      <div class="btn-group">
-        <button id="btnReset">リセット</button>
-        <button class="btn-primary" id="btnCopy">Discord用にコピー</button>
-      </div>
-    </div>
-
-    <div class="preset-box">
-      <div class="preset-title">クイックプリセット</div>
-      <div class="preset-buttons">
-        <button class="preset-btn" data-preset='{"garage": 2, "sheet": 1}'>🚪 ガレージ2枚 + 板金1枚 (小拠点)</button>
-        <button class="preset-btn" data-preset='{"stone_wall": 2}'>🧱 石壁 2枚 (ハニカム貫通)</button>
-        <button class="preset-btn" data-preset='{"armored": 1}'>🛡️ 装甲ドア 1枚 (最深部TC)</button>
-      </div>
-    </div>
-
-    <div class="grid-layout">
-      <!-- 左：目標選択 -->
-      <div class="card">
-        <div class="card-title">破壊目標の選択</div>
-        
-        <div class="field">
-          <label for="mainWeapon">使用武器</label>
-          <select id="mainWeapon">
-            <option value="rocket">ロケット弾 主軸</option>
-            <option value="c4">C4 主軸</option>
-            <option value="satchel">サッチェル電荷 主軸</option>
-            <option value="explo">炸裂弾（エクスプローシブ）主軸</option>
-          </select>
-        </div>
-
-        <div class="target-list">
-          <div class="target-row">
-            <div class="target-info">
-              <div class="name">木のドア</div>
-              <div class="hp">200 HP</div>
-            </div>
-            <div class="counter">
-              <button class="btn-step" data-target="wood_door" data-delta="-1">-</button>
-              <input type="number" id="wood_door" class="calc-input" value="0" min="0">
-              <button class="btn-step" data-target="wood_door" data-delta="1">+</button>
-            </div>
-          </div>
-
-          <div class="target-row">
-            <div class="target-info">
-              <div class="name">板金ドア</div>
-              <div class="hp">250 HP</div>
-            </div>
-            <div class="counter">
-              <button class="btn-step" data-target="sheet" data-delta="-1">-</button>
-              <input type="number" id="sheet" class="calc-input" value="0" min="0">
-              <button class="btn-step" data-target="sheet" data-delta="1">+</button>
-            </div>
-          </div>
-
-          <div class="target-row">
-            <div class="target-info">
-              <div class="name">ガレージドア</div>
-              <div class="hp">600 HP</div>
-            </div>
-            <div class="counter">
-              <button class="btn-step" data-target="garage" data-delta="-1">-</button>
-              <input type="number" id="garage" class="calc-input" value="0" min="0">
-              <button class="btn-step" data-target="garage" data-delta="1">+</button>
-            </div>
-          </div>
-
-          <div class="target-row">
-            <div class="target-info">
-              <div class="name">装甲ドア</div>
-              <div class="hp">800 HP</div>
-            </div>
-            <div class="counter">
-              <button class="btn-step" data-target="armored" data-delta="-1">-</button>
-              <input type="number" id="armored" class="calc-input" value="0" min="0">
-              <button class="btn-step" data-target="armored" data-delta="1">+</button>
-            </div>
-          </div>
-
-          <div class="target-row">
-            <div class="target-info">
-              <div class="name">石壁 / 石天井</div>
-              <div class="hp">500 HP</div>
-            </div>
-            <div class="counter">
-              <button class="btn-step" data-target="stone_wall" data-delta="-1">-</button>
-              <input type="number" id="stone_wall" class="calc-input" value="0" min="0">
-              <button class="btn-step" data-target="stone_wall" data-delta="1">+</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 右：計算結果 -->
-      <div class="card">
-        <div class="result-group">
-          <div class="card-title">必要弾薬</div>
-          <div class="row">
-            <span class="label">必要数</span>
-            <span class="val highlight" id="resAmmo">0 発</span>
-          </div>
-        </div>
-
-        <div class="result-group">
-          <div class="card-title">必要原材料（生素材）</div>
-          <div class="row"><span class="label">硫黄（Sulfur）</span><span class="val" id="resSulfur">0</span></div>
-          <div class="row"><span class="label">木炭（Charcoal）</span><span class="val" id="resCharcoal">0</span></div>
-          <div class="row"><span class="label">金属片（Metal Frags）</span><span class="val" id="resFrags">0</span></div>
-          <div class="row"><span class="label">上質金属（HQM）</span><span class="val" id="resHqm">0</span></div>
-          <div class="row"><span class="label">パイプ（Pipes）</span><span class="val" id="resPipes">0</span></div>
-        </div>
-
-        <div class="sulfur-box">
-          <span class="title">総硫黄コスト</span>
-          <span class="amount" id="totalSulfurBadge">0</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    (function() {
-      const TARGET_IDS = ['wood_door', 'sheet', 'garage', 'armored', 'stone_wall'];
-
-      const COSTS = {
-        wood_door:   { rocket: 1,  c4: 1, satchel: 2,  explo: 18 },
-        sheet:       { rocket: 2,  c4: 1, satchel: 4,  explo: 63 },
-        garage:      { rocket: 3,  c4: 2, satchel: 9,  explo: 150 },
-        armored:     { rocket: 4,  c4: 2, satchel: 12, explo: 200 },
-        stone_wall:  { rocket: 4,  c4: 2, satchel: 10, explo: 185 }
-      };
-
-      const WEAPON_RAW = {
-        rocket:  { sulfur: 1400, charcoal: 1950, frags: 100, hqm: 2, pipes: 2 },
-        c4:      { sulfur: 2200, charcoal: 3000, frags: 200, hqm: 0, pipes: 0 },
-        satchel: { sulfur: 480,  charcoal: 720,  frags: 80,  hqm: 0, pipes: 0 },
-        explo:   { sulfur: 25,   charcoal: 30,   frags: 5,   hqm: 0, pipes: 0 }
-      };
-
-      function updateCalc() {
-        const weaponEl = document.getElementById('mainWeapon');
-        if (!weaponEl) return;
-        const weapon = weaponEl.value;
-        let totalAmmo = 0;
-
-        TARGET_IDS.forEach(function(id) {
-          const input = document.getElementById(id);
-          const count = parseInt(input ? input.value : 0, 10) || 0;
-          totalAmmo += count * (COSTS[id][weapon] || 0);
-        });
-
-        const raw = WEAPON_RAW[weapon];
-        const s = totalAmmo * raw.sulfur;
-        const c = totalAmmo * raw.charcoal;
-        const f = totalAmmo * raw.frags;
-        const h = totalAmmo * raw.hqm;
-        const p = totalAmmo * raw.pipes;
-
-        const weaponNames = { rocket: 'ロケット弾', c4: 'C4', satchel: 'サッチェル', explo: '炸裂弾' };
-        
-        document.getElementById('resAmmo').textContent = totalAmmo + ' 発 (' + weaponNames[weapon] + ')';
-        document.getElementById('resSulfur').textContent = s.toLocaleString();
-        document.getElementById('resCharcoal').textContent = c.toLocaleString();
-        document.getElementById('resFrags').textContent = f.toLocaleString();
-        document.getElementById('resHqm').textContent = h.toLocaleString();
-        document.getElementById('resPipes').textContent = p.toLocaleString();
-        document.getElementById('totalSulfurBadge').textContent = s.toLocaleString();
-      }
-
-      function init() {
-        // ステップボタン
-        const stepBtns = document.querySelectorAll('.btn-step');
-        for (let i = 0; i < stepBtns.length; i++) {
-          stepBtns[i].addEventListener('click', function() {
-            const targetId = this.getAttribute('data-target');
-            const delta = parseInt(this.getAttribute('data-delta'), 10);
-            const input = document.getElementById(targetId);
-            if (input) {
-              let val = (parseInt(input.value, 10) || 0) + delta;
-              input.value = Math.max(0, val);
-              updateCalc();
-            }
-          });
-        }
-
-        // 入力フォーム
-        const inputs = document.querySelectorAll('.calc-input');
-        for (let i = 0; i < inputs.length; i++) {
-          inputs[i].addEventListener('input', updateCalc);
-          inputs[i].addEventListener('change', updateCalc);
-        }
-
-        // 武器セレクト
-        document.getElementById('mainWeapon').addEventListener('change', updateCalc);
-
-        // リセット
-        document.getElementById('btnReset').addEventListener('click', function() {
-          TARGET_IDS.forEach(function(id) {
-            const input = document.getElementById(id);
-            if (input) input.value = 0;
-          });
-          updateCalc();
-        });
-
-        // プリセット
-        const presetBtns = document.querySelectorAll('.preset-btn');
-        for (let i = 0; i < presetBtns.length; i++) {
-          presetBtns[i].addEventListener('click', function() {
-            TARGET_IDS.forEach(function(id) {
-              const input = document.getElementById(id);
-              if (input) input.value = 0;
-            });
-            const data = JSON.parse(this.getAttribute('data-preset'));
-            for (let k in data) {
-              const input = document.getElementById(k);
-              if (input) input.value = data[k];
-            }
-            updateCalc();
-          });
-        }
-
-        // コピー
-        document.getElementById('btnCopy').addEventListener('click', function() {
-          const ammo = document.getElementById('resAmmo').textContent;
-          const sulfur = document.getElementById('resSulfur').textContent;
-          const charcoal = document.getElementById('resCharcoal').textContent;
-          const text = '【レイド素材計算】\n主軸: ' + ammo + '\n必要硫黄: ' + sulfur + ' / 木炭: ' + charcoal;
+    .sulfur-box .title { font-size: 13px; font-weight: bold; color: #fdba74; }
+    .sulfur-box .amount { font-size: 20px; font-weight: 900; color: #f97316; }
