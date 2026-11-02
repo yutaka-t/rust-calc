@@ -1,859 +1,414 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>maritano Rust クラフト・レイド素材シミュレーター</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        rust: {
-                            900: '#111215',
-                            800: '#181a1f',
-                            700: '#23262d',
-                            600: '#323640',
-                            border: '#3c414c',
-                            orange: '#ea580c',
-                            orangeHover: '#f97316',
-                            sulfur: '#facc15',
-                            charcoal: '#9ca3af',
-                            metal: '#38bdf8',
-                            hqm: '#c084fc',
-                            fuel: '#fb923c',
-                            cloth: '#e2e8f0',
-                            scrap: '#34d399',
-                            wood: '#d97706'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #111215; }
-        ::-webkit-scrollbar-thumb { background: #323640; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ea580c; }
-
-        /* Counter input styling */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
-
-        .badge-subtle {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RUST SIMULATOR Raid & Craft</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #121417;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    .header {
+      border-bottom: 2px solid #cd412b;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .title-area h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+    .title-area p {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      background-color: #262a30;
+      color: #e5e7eb;
+      border: 1px solid #3f444e;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background-color: #32373f;
+      border-color: #555c69;
+    }
+    .btn-primary {
+      background-color: #cd412b;
+      border-color: #cd412b;
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background-color: #b33622;
+    }
+    .preset-container {
+      background-color: #1a1d24;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #282d37;
+    }
+    .preset-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #9ca3af;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .preset-btn {
+      font-size: 12px;
+      padding: 6px 10px;
+      background: #232730;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background-color: #1a1d24;
+      border-radius: 8px;
+      border: 1px solid #282d37;
+      padding: 16px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: #f3f4f6;
+      margin-bottom: 12px;
+      border-left: 3px solid #cd412b;
+      padding-left: 8px;
+    }
+    .weapon-select-wrap {
+      margin-bottom: 16px;
+    }
+    .weapon-select-wrap label {
+      display: block;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+    select {
+      width: 100%;
+      background: #232730;
+      border: 1px solid #3f444e;
+      color: #fff;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+    .target-item {
+      background: #222630;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .target-info .name {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .target-info .meta {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+    .counter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .counter button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .counter input {
+      width: 44px;
+      height: 28px;
+      text-align: center;
+      background: #14171c;
+      border: 1px solid #3f444e;
+      color: #fff;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #282d37;
+      font-size: 13px;
+    }
+    .result-row:last-child {
+      border-bottom: none;
+    }
+    .result-row .res-name {
+      color: #d1d5db;
+    }
+    .result-row .res-val {
+      font-weight: bold;
+      color: #fbbf24;
+    }
+    .total-sulfur {
+      margin-top: 16px;
+      background: #2d1810;
+      border: 1px solid #7c2d12;
+      padding: 12px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .total-sulfur .label {
+      font-weight: bold;
+      color: #fdba74;
+      font-size: 14px;
+    }
+    .total-sulfur .val {
+      font-size: 18px;
+      font-weight: 800;
+      color: #f97316;
+    }
+  </style>
 </head>
-<body class="bg-rust-900 text-gray-200 min-h-screen flex flex-col font-sans selection:bg-rust-orange selection:text-white">
+<body>
 
-    <!-- Header -->
-    <header class="bg-rust-800/95 border-b border-rust-border/80 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded bg-gradient-to-br from-rust-orange to-red-700 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-rust-orange/20">
-                    R
-                </div>
-                <div>
-                    <h1 class="text-base sm:text-lg font-bold tracking-wide text-white flex items-center gap-2">
-                        RUST SIMULATOR <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-rust-orange/20 text-rust-orange border border-rust-orange/30">Raid & Craft</span>
-                    </h1>
-                    <p class="text-xs text-gray-400">拠点破壊 & 爆薬クラフト総素材計算ツール</p>
-                </div>
-            </div>
+  <div class="header">
+    <div class="title-area">
+      <h1>RUST RAID & CRAFT SIMULATOR</h1>
+      <p>拠点破壊＆爆薬クラフト総素材計算ツール</p>
+    </div>
+    <div class="btn-group">
+      <button onclick="resetAll()">リセット</button>
+      <button class="btn-primary" onclick="copyDiscord()">Discord用にコピー</button>
+    </div>
+  </div>
 
-            <!-- Top Actions -->
-            <div class="flex items-center gap-2">
-                <button id="btnReset" class="text-xs px-3 py-1.5 rounded bg-rust-700 hover:bg-rust-600 text-gray-300 transition flex items-center gap-1 border border-rust-border">
-                    <svg class="w-3.5 h-3.5 text-rust-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>リセット</span>
-                </button>
-                <button id="btnCopyDiscord" class="text-xs px-3.5 py-1.5 rounded bg-rust-orange hover:bg-rust-orangeHover text-white font-medium shadow-md shadow-rust-orange/20 transition flex items-center gap-1.5 active:scale-95">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                    <span id="copyBtnText">Discord用にコピー</span>
-                </button>
-            </div>
+  <div class="preset-container">
+    <div class="preset-title">クイックプリセット</div>
+    <div class="presets">
+      <button class="preset-btn" onclick="applyPreset({garage: 2, sheet: 1})">🚪 ガレージ2枚 + 板金1枚 (小拠点)</button>
+      <button class="preset-btn" onclick="applyPreset({stone_wall: 2})">🧱 石壁 2枚 (ハニカム貫通)</button>
+      <button class="preset-btn" onclick="applyPreset({armored: 1})">🛡️ 装甲ドア 1枚 (最深部TC)</button>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- 破壊目標選択 -->
+    <div class="card">
+      <div class="card-title">破壊目標の選択</div>
+      
+      <div class="weapon-select-wrap">
+        <label>使用武器</label>
+        <select id="mainWeapon" onchange="calculate()">
+          <option value="rocket">ロケット弾 主軸</option>
+          <option value="c4">C4 主軸</option>
+          <option value="satchel">サッチェル電荷 主軸</option>
+          <option value="explo">炸裂弾（エクスプローシブ）主軸</option>
+        </select>
+      </div>
+
+      <div class="target-item">
+        <div class="target-info">
+          <div class="name">木のドア</div>
+          <div class="meta">200 HP</div>
         </div>
-
-        <!-- Mode Tabs -->
-        <div class="max-w-7xl mx-auto px-4 flex border-t border-rust-border/60">
-            <button id="tabRaid" class="px-5 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-rust-orange text-rust-orange flex items-center gap-2 transition">
-                <span>🎯 目標から逆算 (レイド)</span>
-            </button>
-            <button id="tabCraft" class="px-5 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center gap-2 transition">
-                <span>💣 爆薬・弾薬から直接計算 (クラフト)</span>
-            </button>
+        <div class="counter">
+          <button onclick="changeVal('wood_door', -1)">-</button>
+          <input type="number" id="wood_door" value="0" min="0" onchange="calculate()">
+          <button onclick="changeVal('wood_door', 1)">+</button>
         </div>
-    </header>
+      </div>
 
-    <!-- Main Content Layout -->
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-        <!-- Left/Input Column (7 Cols on LG) -->
-        <div class="lg:col-span-7 space-y-6">
-
-            <!-- Presets Banner (Raid Mode Only) -->
-            <div id="raidPresetsSection" class="bg-rust-800 p-4 rounded-xl border border-rust-border shadow-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-gray-400">クイックレイド目標プリセット</span>
-                    <span class="text-[11px] text-gray-500">ワンクリックでセット</span>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="applyPreset('garage_double')" class="text-xs px-2.5 py-1.5 rounded-lg bg-rust-700 hover:bg-rust-600 border border-rust-border text-gray-200 transition flex items-center gap-1.5">
-                        <span>🚪 ガレージ2枚 + 板金1枚 (小拠点)</span>
-                    </button>
-                    <button onclick="applyPreset('stone_wall')" class="text-xs px-2.5 py-1.5 rounded-lg bg-rust-700 hover:bg-rust-600 border border-rust-border text-gray-200 transition flex items-center gap-1.5">
-                        <span>🧱 石壁 2枚 (ハニカム貫通)</span>
-                    </button>
-                    <button onclick="applyPreset('armored_door')" class="text-xs px-2.5 py-1.5 rounded-lg bg-rust-700 hover:bg-rust-600 border border-rust-border text-gray-200 transition flex items-center gap-1.5">
-                        <span>🛡️ 装甲ドア 1枚 (最深部TC)</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tab 1: Raid Targets Section -->
-            <div id="raidSection" class="bg-rust-800 p-5 rounded-xl border border-rust-border shadow-sm space-y-5">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-rust-border/60">
-                    <div>
-                        <h2 class="text-base font-bold text-white flex items-center gap-2">
-                            <span>破壊目標の選択</span>
-                        </h2>
-                        <p class="text-xs text-gray-400">破壊したいドア・壁の枚数と、使用する主力を選択</p>
-                    </div>
-
-                    <!-- Raid Tool Selector -->
-                    <div class="flex items-center gap-1.5 bg-rust-900 p-1 rounded-lg border border-rust-border text-xs">
-                        <span class="text-[11px] text-gray-400 px-2 font-medium">使用武器:</span>
-                        <select id="raidToolSelect" class="bg-rust-700 text-white font-medium py-1 px-2.5 rounded border border-rust-border focus:outline-none focus:border-rust-orange">
-                            <option value="rocket">ロケット弾 主軸</option>
-                            <option value="c4">C4 主軸</option>
-                            <option value="expo">炸裂弾 (エクス5.56) 主軸</option>
-                            <option value="satchel">サッチェル爆薬 主軸</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Targets Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="targetListContainer">
-                    <!-- Populated dynamically via JS -->
-                </div>
-            </div>
-
-            <!-- Tab 2: Direct Crafting Section (Hidden by default) -->
-            <div id="craftSection" class="hidden bg-rust-800 p-5 rounded-xl border border-rust-border shadow-sm space-y-5">
-                <div class="pb-3 border-b border-rust-border/60">
-                    <h2 class="text-base font-bold text-white">作成アイテム直接指定</h2>
-                    <p class="text-xs text-gray-400">クラフトしたい爆薬や弾薬の数量を直接指定します</p>
-                </div>
-
-                <!-- Craft items grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="craftItemListContainer">
-                    <!-- Populated dynamically via JS -->
-                </div>
-            </div>
-
+      <div class="target-item">
+        <div class="target-info">
+          <div class="name">板金ドア</div>
+          <div class="meta">250 HP</div>
         </div>
-
-        <!-- Right/Output Summary Column (5 Cols on LG) -->
-        <div class="lg:col-span-5 space-y-6">
-
-            <!-- Summary Card -->
-            <div class="bg-rust-800 rounded-xl border border-rust-border p-5 shadow-lg space-y-6 sticky top-28">
-                
-                <!-- Main Header -->
-                <div class="flex items-center justify-between pb-3 border-b border-rust-border">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-rust-orange animate-pulse"></span>
-                        <h3 class="text-sm font-bold tracking-wider text-white uppercase">必要素材サマリー</h3>
-                    </div>
-                    <span id="activeItemsCount" class="text-xs px-2 py-0.5 rounded-full bg-rust-700 text-gray-300 font-mono">0 アイテム</span>
-                </div>
-
-                <!-- Explosive Arsenal Required (What you need to bring) -->
-                <div>
-                    <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center justify-between">
-                        <span>持っていく爆薬・装備</span>
-                        <span class="text-[11px] text-rust-orange lowercase font-mono">arsenal to craft</span>
-                    </h4>
-                    <div id="explosiveNeedsContainer" class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="col-span-2 py-4 text-center text-gray-500 bg-rust-900/50 rounded-lg border border-dashed border-rust-border">
-                            目標を選択すると必要な爆薬が表示されます
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Raw Materials Breakdown (The Grinding Cost) -->
-                <div>
-                    <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center justify-between">
-                        <span>採取・精錬が必要な生素材</span>
-                        <span class="text-[11px] text-rust-sulfur lowercase font-mono">raw materials</span>
-                    </h4>
-                    
-                    <div class="grid grid-cols-2 gap-2" id="rawMaterialsContainer">
-                        <!-- Populated via JS -->
-                    </div>
-                </div>
-
-                <!-- Smelting & Furnace Helper Info -->
-                <div class="bg-rust-900/80 rounded-lg p-3.5 border border-rust-border/70 space-y-2 text-xs">
-                    <div class="flex items-center justify-between text-gray-300 font-medium">
-                        <span class="flex items-center gap-1.5">
-                            <span class="text-rust-sulfur">🔥</span> 精錬に必要な生鉱石 & 木炭
-                        </span>
-                        <span class="text-[10px] text-gray-500 font-mono">大釜・小釜</span>
-                    </div>
-                    
-                    <div class="text-[11px] text-gray-400 space-y-1">
-                        <div class="flex justify-between py-0.5 border-b border-rust-border/40">
-                            <span>硫黄鉱石 (未精錬):</span>
-                            <span id="rawSulfurOreVal" class="font-mono text-rust-sulfur font-semibold">0</span>
-                        </div>
-                        <div class="flex justify-between py-0.5 border-b border-rust-border/40">
-                            <span>木炭自給に必要な木材 (概算):</span>
-                            <span id="charcoalWoodVal" class="font-mono text-rust-wood font-semibold">0</span>
-                        </div>
-                        <div class="flex justify-between py-0.5">
-                            <span>中間素材「爆薬」の個数:</span>
-                            <span id="intermediateExplosivesVal" class="font-mono text-red-400 font-semibold">0 個</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pro Tips / Advice -->
-                <div class="p-3 rounded-lg bg-rust-orange/10 border border-rust-orange/20 text-[11px] text-orange-200/90 leading-relaxed">
-                    💡 <strong>Tips:</strong> ガレージドアはロケット2発+エクス弾40発など、弾薬の併用で硫黄の端数を節約できます。
-                </div>
-
-            </div>
-
+        <div class="counter">
+          <button onclick="changeVal('sheet', -1)">-</button>
+          <input type="number" id="sheet" value="0" min="0" onchange="calculate()">
+          <button onclick="changeVal('sheet', 1)">+</button>
         </div>
+      </div>
 
-    </main>
+      <div class="target-item">
+        <div class="target-info">
+          <div class="name">ガレージドア</div>
+          <div class="meta">600 HP</div>
+        </div>
+        <div class="counter">
+          <button onclick="changeVal('garage', -1)">-</button>
+          <input type="number" id="garage" value="0" min="0" onchange="calculate()">
+          <button onclick="changeVal('garage', 1)">+</button>
+        </div>
+      </div>
 
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none z-50 bg-rust-800 text-white text-xs px-4 py-2.5 rounded-lg border border-rust-orange shadow-xl flex items-center gap-2">
-        <svg class="w-4 h-4 text-rust-orange" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-        <span id="toastMsg">クリップボードにコピーしました</span>
+      <div class="target-item">
+        <div class="target-info">
+          <div class="name">装甲ドア</div>
+          <div class="meta">800 HP</div>
+        </div>
+        <div class="counter">
+          <button onclick="changeVal('armored', -1)">-</button>
+          <input type="number" id="armored" value="0" min="0" onchange="calculate()">
+          <button onclick="changeVal('armored', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="target-item">
+        <div class="target-info">
+          <div class="name">石壁 / 石天井</div>
+          <div class="meta">500 HP</div>
+        </div>
+        <div class="counter">
+          <button onclick="changeVal('stone_wall', -1)">-</button>
+          <input type="number" id="stone_wall" value="0" min="0" onchange="calculate()">
+          <button onclick="changeVal('stone_wall', 1)">+</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Script: Data Structures, Logic and UI Updates -->
-    <script>
-        /**
-         * 1. MASTER RECIPES & RATIOS
-         * Accurate standard Rust vanilla crafting ratios
-         */
-        const RECIPES = {
-            // Raw materials (Leaves in DAG)
-            sulfur: { name: '硫黄', color: 'text-rust-sulfur', unit: '', isRaw: true },
-            charcoal: { name: '木炭', color: 'text-rust-charcoal', unit: '', isRaw: true },
-            metal_frag: { name: '金属片', color: 'text-rust-metal', unit: '', isRaw: true },
-            hqm: { name: '上質金属', color: 'text-rust-hqm', unit: '', isRaw: true },
-            lowgrade: { name: '低質油', color: 'text-rust-fuel', unit: '', isRaw: true },
-            cloth: { name: '布', color: 'text-rust-cloth', unit: '', isRaw: true },
-            pipe: { name: '金属パイプ', color: 'text-gray-300', unit: '本', isRaw: true },
-            rope: { name: 'ロープ', color: 'text-yellow-600', unit: '本', isRaw: true },
-            techtrash: { name: '電子部品', color: 'text-emerald-400', unit: '個', isRaw: true },
-            stash: { name: '小型隠し収納袋', color: 'text-amber-700', unit: '個', isRaw: true },
+    <!-- 必要弾薬 & 素材計算結果 -->
+    <div class="card">
+      <div class="card-title">必要弾薬</div>
+      <div id="ammoResults">
+        <div class="result-row"><span class="res-name">選択された武器数</span><span class="res-val" id="resAmmo">0</span></div>
+      </div>
 
-            // Intermediates
-            // 10 Gunpowder = 20 Sulfur + 30 Charcoal
-            gunpowder: {
-                name: '火薬',
-                ingredients: { sulfur: 2, charcoal: 3 }
-            },
-            // 1 Explosives = 50 Gunpowder + 3 Lowgrade + 10 Sulfur + 10 Metal Frags
-            explosives: {
-                name: '爆薬',
-                ingredients: { gunpowder: 50, lowgrade: 3, sulfur: 10, metal_frag: 10 }
-            },
-            // 1 Beancan = 60 Gunpowder + 20 Metal Frags
-            beancan: {
-                name: 'ビーン缶爆弾',
-                ingredients: { gunpowder: 60, metal_frag: 20 }
-            },
+      <div class="card-title" style="margin-top: 24px;">必要原材料（生素材）</div>
+      <div class="result-row"><span class="res-name">硫黄（Sulfur）</span><span class="res-val" id="resSulfur">0</span></div>
+      <div class="result-row"><span class="res-name">木炭（Charcoal）</span><span class="res-val" id="resCharcoal">0</span></div>
+      <div class="result-row"><span class="res-name">金属片（Metal Frags）</span><span class="res-val" id="resFrags">0</span></div>
+      <div class="result-row"><span class="res-name">上質金属（HQM）</span><span class="res-val" id="resHqm">0</span></div>
+      <div class="result-row"><span class="res-name">パイプ（Pipes）</span><span class="res-val" id="resPipes">0</span></div>
 
-            // End Craftable Arsenal
-            rocket: {
-                name: 'ロケット弾',
-                icon: '🚀',
-                desc: '標準的な高威力レイド兵器',
-                ingredients: { explosives: 10, gunpowder: 150, pipe: 2 }
-            },
-            c4: {
-                name: '時限爆薬 (C4)',
-                icon: '⏱️',
-                desc: '単体壁・扉への最高峰爆破威力',
-                ingredients: { explosives: 20, cloth: 5, techtrash: 2 }
-            },
-            expo: {
-                name: '炸裂弾 (5.56mm)',
-                icon: '💥',
-                desc: 'サイレンサー併用での静音レイド向き',
-                ingredients: { gunpowder: 10, metal_frag: 5, sulfur: 5 }
-            },
-            satchel: {
-                name: 'サッチェル爆薬',
-                icon: '💣',
-                desc: 'Tier1で作れる序盤の爆薬',
-                ingredients: { beancan: 4, stash: 1, rope: 1 }
-            },
-            fast_rocket: {
-                name: '高速ロケット',
-                icon: '⚡',
-                desc: 'PVP・タレット・サムサイト破壊用',
-                ingredients: { gunpowder: 100, pipe: 1 }
-            }
-        };
+      <div class="total-sulfur">
+        <span class="label">総硫黄コスト:</span>
+        <span class="val" id="totalSulfurBadge">0</span>
+      </div>
+    </div>
+  </div>
 
-        /**
-         * 2. RAID TARGETS DATABASE
-         * Number of explosives needed per structure
-         */
-        const RAID_TARGETS = [
-            {
-                id: 'wood_door',
-                name: '木のドア',
-                icon: '🚪',
-                hp: '200 HP',
-                tier: 'Tier 1',
-                needs: { rocket: 1, c4: 1, expo: 19, satchel: 2 }
-            },
-            {
-                id: 'sheet_door',
-                name: '板金ドア',
-                icon: '🚪',
-                hp: '250 HP',
-                tier: 'Tier 1',
-                needs: { rocket: 2, c4: 1, expo: 63, satchel: 4 }
-            },
-            {
-                id: 'garage_door',
-                name: 'ガレージドア',
-                icon: '⛩️',
-                hp: '600 HP',
-                tier: 'Tier 2',
-                needs: { rocket: 3, c4: 2, expo: 150, satchel: 9 }
-            },
-            {
-                id: 'armored_door',
-                name: '装甲ドア',
-                icon: '🛡️',
-                hp: '800 HP',
-                tier: 'Tier 3',
-                needs: { rocket: 4, c4: 2, expo: 200, satchel: 12 }
-            },
-            {
-                id: 'stone_wall',
-                name: '石の壁 / 天井',
-                icon: '🧱',
-                hp: '500 HP',
-                tier: 'Tier 2',
-                needs: { rocket: 4, c4: 2, expo: 185, satchel: 10 }
-            },
-            {
-                id: 'sheet_wall',
-                name: '板金の壁 / 天井',
-                icon: '🔲',
-                hp: '1,000 HP',
-                tier: 'Tier 2',
-                needs: { rocket: 8, c4: 4, expo: 400, satchel: 23 }
-            },
-            {
-                id: 'armored_wall',
-                name: '装甲壁 / 天井',
-                icon: '🏰',
-                hp: '2,000 HP',
-                tier: 'Tier 3',
-                needs: { rocket: 15, c4: 8, expo: 799, satchel: 46 }
-            },
-            {
-                id: 'auto_turret',
-                name: '自動タレット',
-                icon: '🤖',
-                hp: '1,000 HP',
-                tier: '防衛設備',
-                needs: { rocket: 3, c4: 1, expo: 110, satchel: 4 }
-            }
-        ];
+  <script>
+    // 目標ごとの耐久コスト表 [rocket, c4, satchel, 5.56explo]
+    const COSTS = {
+      wood_door:   { rocket: 1,  c4: 1, satchel: 2,  explo: 18 },
+      sheet:       { rocket: 2,  c4: 1, satchel: 4,  explo: 63 },
+      garage:      { rocket: 3,  c4: 2, satchel: 9,  explo: 150 },
+      armored:     { rocket: 4,  c4: 2, satchel: 12, explo: 200 },
+      stone_wall:  { rocket: 4,  c4: 2, satchel: 10, explo: 185 }
+    };
 
-        // Active State
-        let currentMode = 'raid'; // 'raid' or 'craft'
-        let targetCounts = {};    // { target_id: count }
-        let directCraftCounts = { // { item_id: count }
-            rocket: 0,
-            c4: 0,
-            expo: 0,
-            satchel: 0,
-            fast_rocket: 0
-        };
-        let selectedRaidTool = 'rocket'; // 'rocket', 'c4', 'expo', 'satchel'
+    // 武器1つあたりの生素材コスト (火薬1=硫黄2+木炭3, 爆薬1=火薬50+硫黄10+低質10+鉄10)
+    const WEAPON_RAW = {
+      rocket:  { sulfur: 1400, charcoal: 1950, frags: 100, hqm: 2, pipes: 2 },
+      c4:      { sulfur: 2200, charcoal: 3000, frags: 200, hqm: 0, pipes: 0 },
+      satchel: { sulfur: 480,  charcoal: 720,  frags: 80,  hqm: 0, pipes: 0 },
+      explo:   { sulfur: 25,   charcoal: 30,   frags: 5,   hqm: 0, pipes: 0 } // 1発あたり
+    };
 
-        // Initialize counts
-        RAID_TARGETS.forEach(t => targetCounts[t.id] = 0);
+    function changeVal(id, delta) {
+      const el = document.getElementById(id);
+      let v = parseInt(el.value) || 0;
+      v = Math.max(0, v + delta);
+      el.value = v;
+      calculate();
+    }
 
-        /**
-         * 3. RECURSIVE MATERIAL RESOLUTION
-         */
-        function breakdownItem(itemId, quantity, accumulatedRaws, accumulatedIntermediates) {
-            if (!RECIPES[itemId] || quantity <= 0) return;
+    function applyPreset(data) {
+      resetAll(false);
+      for (const [k, v] of Object.entries(data)) {
+        const el = document.getElementById(k);
+        if (el) el.value = v;
+      }
+      calculate();
+    }
 
-            const item = RECIPES[itemId];
+    function resetAll(triggerCalc = true) {
+      ['wood_door', 'sheet', 'garage', 'armored', 'stone_wall'].forEach(id => {
+        document.getElementById(id).value = 0;
+      });
+      if (triggerCalc) calculate();
+    }
 
-            if (item.isRaw) {
-                accumulatedRaws[itemId] = (accumulatedRaws[itemId] || 0) + quantity;
-                return;
-            }
+    function calculate() {
+      const weapon = document.getElementById('mainWeapon').value;
+      let totalAmmo = 0;
 
-            // Track intermediate count if not raw
-            if (itemId === 'gunpowder' || itemId === 'explosives' || itemId === 'beancan') {
-                accumulatedIntermediates[itemId] = (accumulatedIntermediates[itemId] || 0) + quantity;
-            }
+      for (const [key, costMap] of Object.entries(COSTS)) {
+        const count = parseInt(document.getElementById(key).value) || 0;
+        totalAmmo += count * costMap[weapon];
+      }
 
-            // Recursive step through ingredients
-            for (const [subId, subQty] of Object.entries(item.ingredients)) {
-                breakdownItem(subId, subQty * quantity, accumulatedRaws, accumulatedIntermediates);
-            }
-        }
+      const raw = WEAPON_RAW[weapon];
+      const s = totalAmmo * raw.sulfur;
+      const c = totalAmmo * raw.charcoal;
+      const f = totalAmmo * raw.frags;
+      const h = totalAmmo * raw.hqm;
+      const p = totalAmmo * raw.pipes;
 
-        /**
-         * Calculate total arsenal needed depending on active mode
-         */
-        function calculateTotalArsenal() {
-            const arsenal = { rocket: 0, c4: 0, expo: 0, satchel: 0, fast_rocket: 0 };
+      const weaponNames = { rocket: 'ロケット弾', c4: 'C4', satchel: 'サッチェル', explo: '炸裂弾' };
+      document.getElementById('resAmmo').textContent = `${totalAmmo} 発 (${weaponNames[weapon]})`;
+      document.getElementById('resSulfur').textContent = s.toLocaleString();
+      document.getElementById('resCharcoal').textContent = c.toLocaleString();
+      document.getElementById('resFrags').textContent = f.toLocaleString();
+      document.getElementById('resHqm').textContent = h.toLocaleString();
+      document.getElementById('resPipes').textContent = p.toLocaleString();
+      document.getElementById('totalSulfurBadge').textContent = `${s.toLocaleString()} 硫黄`;
+    }
 
-            if (currentMode === 'raid') {
-                // Determine explosives based on selected tool
-                RAID_TARGETS.forEach(target => {
-                    const count = targetCounts[target.id] || 0;
-                    if (count > 0) {
-                        const requiredPerTarget = target.needs[selectedRaidTool];
-                        arsenal[selectedRaidTool] += requiredPerTarget * count;
-                    }
-                });
-            } else {
-                // Direct Craft Mode
-                for (const [k, v] of Object.entries(directCraftCounts)) {
-                    arsenal[k] = (arsenal[k] || 0) + v;
-                }
-            }
+    function copyDiscord() {
+      const weapon = document.getElementById('mainWeapon').value;
+      const weaponNames = { rocket: 'ロケット弾', c4: 'C4', satchel: 'サッチェル', explo: '炸裂弾' };
+      const ammo = document.getElementById('resAmmo').textContent;
+      const sulfur = document.getElementById('resSulfur').textContent;
+      const charcoal = document.getElementById('resCharcoal').textContent;
 
-            return arsenal;
-        }
+      const text = `【レイド素材計算】\n主軸: ${ammo}\n必要硫黄: ${sulfur} / 木炭: ${charcoal}`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Discord用テキストをクリップボードにコピーしました！');
+      });
+    }
 
-        /**
-         * Recalculate everything and refresh UI
-         */
-        function updateCalculations() {
-            const arsenal = calculateTotalArsenal();
-            const rawTotals = {
-                sulfur: 0,
-                charcoal: 0,
-                metal_frag: 0,
-                hqm: 0,
-                lowgrade: 0,
-                cloth: 0,
-                pipe: 0,
-                rope: 0,
-                techtrash: 0,
-                stash: 0
-            };
-            const intermediateTotals = {
-                gunpowder: 0,
-                explosives: 0,
-                beancan: 0
-            };
-
-            // Break down all active arsenal
-            for (const [itemId, qty] of Object.entries(arsenal)) {
-                if (qty > 0) {
-                    breakdownItem(itemId, qty, rawTotals, intermediateTotals);
-                }
-            }
-
-            renderArsenalSummary(arsenal);
-            renderRawMaterials(rawTotals, intermediateTotals);
-            renderCounters();
-        }
-
-        /**
-         * Render Arsenal Cards
-         */
-        function renderArsenalSummary(arsenal) {
-            const container = document.getElementById('explosiveNeedsContainer');
-            container.innerHTML = '';
-
-            let hasItems = false;
-            let activeCount = 0;
-
-            for (const [itemId, qty] of Object.entries(arsenal)) {
-                if (qty > 0) {
-                    hasItems = true;
-                    activeCount += qty;
-                    const meta = RECIPES[itemId];
-                    const div = document.createElement('div');
-                    div.className = "flex items-center justify-between p-2.5 rounded-lg bg-rust-900 border border-rust-border/80";
-                    div.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="text-lg">${meta.icon}</span>
-                            <div>
-                                <div class="font-bold text-white text-xs">${meta.name}</div>
-                                <div class="text-[10px] text-gray-500">${itemId.toUpperCase()}</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="font-mono text-sm font-bold text-rust-orange">${qty.toLocaleString()}</span>
-                            <span class="text-[10px] text-gray-400">個</span>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                }
-            }
-
-            if (!hasItems) {
-                container.innerHTML = `
-                    <div class="col-span-2 py-4 text-center text-gray-500 bg-rust-900/50 rounded-lg border border-dashed border-rust-border">
-                        目標やクラフト数を設定するとここに必要兵器が表示されます
-                    </div>
-                `;
-            }
-
-            document.getElementById('activeItemsCount').textContent = `${activeCount} アイテム`;
-        }
-
-        /**
-         * Render Raw Material Grid
-         */
-        function renderRawMaterials(raws, intermediates) {
-            const container = document.getElementById('rawMaterialsContainer');
-            container.innerHTML = '';
-
-            const displayRaws = [
-                { id: 'sulfur', name: '硫黄 (精錬済)', color: 'text-rust-sulfur', bg: 'bg-yellow-500/10' },
-                { id: 'charcoal', name: '木炭', color: 'text-rust-charcoal', bg: 'bg-gray-500/10' },
-                { id: 'metal_frag', name: '金属片', color: 'text-rust-metal', bg: 'bg-sky-500/10' },
-                { id: 'lowgrade', name: '低質油', color: 'text-rust-fuel', bg: 'bg-orange-500/10' },
-                { id: 'cloth', name: '布', color: 'text-rust-cloth', bg: 'bg-slate-400/10' },
-                { id: 'pipe', name: '金属パイプ', color: 'text-gray-300', bg: 'bg-gray-600/10', unit: '本' },
-                { id: 'techtrash', name: '電子部品', color: 'text-rust-scrap', bg: 'bg-emerald-500/10', unit: '個' },
-                { id: 'rope', name: 'ロープ', color: 'text-yellow-600', bg: 'bg-yellow-700/10', unit: '本' }
-            ];
-
-            displayRaws.forEach(item => {
-                const val = raws[item.id] || 0;
-                const unit = item.unit || '';
-                const card = document.createElement('div');
-                card.className = `p-2.5 rounded-lg border border-rust-border/60 ${item.bg} flex flex-col justify-between`;
-                card.innerHTML = `
-                    <span class="text-[11px] font-medium text-gray-400">${item.name}</span>
-                    <span class="text-sm sm:text-base font-mono font-bold ${item.color} mt-1">
-                        ${val.toLocaleString()} <span class="text-[10px] font-normal text-gray-400">${unit}</span>
-                    </span>
-                `;
-                container.appendChild(card);
-            });
-
-            // Furnace & Smelting Calculations
-            const sulfurNeeded = raws.sulfur || 0;
-            // 1 Sulfur Ore = 1 Sulfur (Raw sulfur ore ratio is 1:1, requires wood)
-            document.getElementById('rawSulfurOreVal').textContent = `${sulfurNeeded.toLocaleString()} 個`;
-
-            // Wood needed: 1 Wood produces approx 0.75 charcoal in standard furnace
-            const charcoalNeeded = raws.charcoal || 0;
-            const woodEstimate = Math.ceil(charcoalNeeded / 0.75);
-            document.getElementById('charcoalWoodVal').textContent = `${woodEstimate.toLocaleString()} 本`;
-
-            document.getElementById('intermediateExplosivesVal').textContent = `${(intermediates.explosives || 0).toLocaleString()} 個`;
-        }
-
-        /**
-         * Render counter input values
-         */
-        function renderCounters() {
-            if (currentMode === 'raid') {
-                RAID_TARGETS.forEach(t => {
-                    const input = document.getElementById(`input_target_${t.id}`);
-                    if (input) input.value = targetCounts[t.id] || 0;
-                });
-            } else {
-                Object.keys(directCraftCounts).forEach(k => {
-                    const input = document.getElementById(`input_craft_${k}`);
-                    if (input) input.value = directCraftCounts[k] || 0;
-                });
-            }
-        }
-
-        /**
-         * Build DOM for Target List
-         */
-        function initTargetList() {
-            const container = document.getElementById('targetListContainer');
-            container.innerHTML = '';
-
-            RAID_TARGETS.forEach(target => {
-                const card = document.createElement('div');
-                card.className = "bg-rust-900/90 rounded-lg p-3 border border-rust-border/80 flex items-center justify-between gap-3 hover:border-rust-border transition";
-                card.innerHTML = `
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <span class="text-2xl">${target.icon}</span>
-                        <div class="min-w-0">
-                            <h4 class="text-xs sm:text-sm font-semibold text-white truncate">${target.name}</h4>
-                            <div class="flex items-center gap-2 text-[10px] text-gray-400">
-                                <span class="text-red-400">${target.hp}</span>
-                                <span>•</span>
-                                <span class="font-mono text-rust-orange" id="cost_preview_${target.id}">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step Counter -->
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="adjustTarget('${target.id}', -1)" class="w-7 h-7 rounded bg-rust-700 hover:bg-rust-600 text-gray-200 font-bold text-sm flex items-center justify-center transition active:scale-95 border border-rust-border">
-                            -
-                        </button>
-                        <input id="input_target_${target.id}" type="number" min="0" max="99" value="0" 
-                            onchange="setTargetCount('${target.id}', this.value)" 
-                            class="w-10 h-7 bg-rust-800 text-center font-mono font-bold text-xs text-white border border-rust-border rounded focus:outline-none focus:border-rust-orange">
-                        <button onclick="adjustTarget('${target.id}', 1)" class="w-7 h-7 rounded bg-rust-orange hover:bg-rust-orangeHover text-white font-bold text-sm flex items-center justify-center transition active:scale-95 shadow">
-                            +
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            updateTargetCostPreviews();
-        }
-
-        /**
-         * Build DOM for Direct Craft items
-         */
-        function initCraftItemList() {
-            const container = document.getElementById('craftItemListContainer');
-            container.innerHTML = '';
-
-            const craftKeys = ['rocket', 'c4', 'expo', 'satchel', 'fast_rocket'];
-
-            craftKeys.forEach(key => {
-                const item = RECIPES[key];
-                const card = document.createElement('div');
-                card.className = "bg-rust-900/90 rounded-lg p-3 border border-rust-border/80 flex items-center justify-between gap-3";
-                card.innerHTML = `
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <span class="text-2xl">${item.icon}</span>
-                        <div class="min-w-0">
-                            <h4 class="text-xs sm:text-sm font-semibold text-white truncate">${item.name}</h4>
-                            <p class="text-[10px] text-gray-400 truncate">${item.desc}</p>
-                        </div>
-                    </div>
-
-                    <!-- Counter -->
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="adjustCraft('${key}', -1)" class="w-7 h-7 rounded bg-rust-700 hover:bg-rust-600 text-gray-200 font-bold text-sm flex items-center justify-center transition active:scale-95 border border-rust-border">
-                            -
-                        </button>
-                        <input id="input_craft_${key}" type="number" min="0" max="999" value="0" 
-                            onchange="setCraftCount('${key}', this.value)" 
-                            class="w-12 h-7 bg-rust-800 text-center font-mono font-bold text-xs text-white border border-rust-border rounded focus:outline-none focus:border-rust-orange">
-                        <button onclick="adjustCraft('${key}', 1)" class="w-7 h-7 rounded bg-rust-orange hover:bg-rust-orangeHover text-white font-bold text-sm flex items-center justify-center transition active:scale-95 shadow">
-                            +
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function updateTargetCostPreviews() {
-            RAID_TARGETS.forEach(target => {
-                const previewEl = document.getElementById(`cost_preview_${target.id}`);
-                if (previewEl) {
-                    const req = target.needs[selectedRaidTool];
-                    const weaponName = RECIPES[selectedRaidTool].name;
-                    previewEl.textContent = `必要: ${req} ${weaponName}`;
-                }
-            });
-        }
-
-        // Adjusters
-        window.adjustTarget = function(id, delta) {
-            const next = Math.max(0, (targetCounts[id] || 0) + delta);
-            targetCounts[id] = next;
-            updateCalculations();
-        };
-
-        window.setTargetCount = function(id, val) {
-            targetCounts[id] = Math.max(0, parseInt(val, 10) || 0);
-            updateCalculations();
-        };
-
-        window.adjustCraft = function(key, delta) {
-            const next = Math.max(0, (directCraftCounts[key] || 0) + delta);
-            directCraftCounts[key] = next;
-            updateCalculations();
-        };
-
-        window.setCraftCount = function(key, val) {
-            directCraftCounts[key] = Math.max(0, parseInt(val, 10) || 0);
-            updateCalculations();
-        };
-
-        // Presets
-        window.applyPreset = function(type) {
-            // Reset existing
-            RAID_TARGETS.forEach(t => targetCounts[t.id] = 0);
-
-            if (type === 'garage_double') {
-                targetCounts['garage_door'] = 2;
-                targetCounts['sheet_door'] = 1;
-            } else if (type === 'stone_wall') {
-                targetCounts['stone_wall'] = 2;
-            } else if (type === 'armored_door') {
-                targetCounts['armored_door'] = 1;
-            }
-            updateCalculations();
-            showToast('プリセットを適用しました');
-        };
-
-        /**
-         * Reset All
-         */
-        document.getElementById('resetAllBtn')?.addEventListener('click', resetAll);
-        document.getElementById('btnReset').addEventListener('click', resetAll);
-
-        function resetAll() {
-            RAID_TARGETS.forEach(t => targetCounts[t.id] = 0);
-            Object.keys(directCraftCounts).forEach(k => directCraftCounts[k] = 0);
-            updateCalculations();
-            showToast('すべての入力をリセットしました');
-        }
-
-        /**
-         * Tool Switcher
-         */
-        document.getElementById('raidToolSelect').addEventListener('change', function(e) {
-            selectedRaidTool = e.target.value;
-            updateTargetCostPreviews();
-            updateCalculations();
-        });
-
-        /**
-         * Tabs Handling
-         */
-        const tabRaid = document.getElementById('tabRaid');
-        const tabCraft = document.getElementById('tabCraft');
-        const raidSection = document.getElementById('raidSection');
-        const craftSection = document.getElementById('craftSection');
-        const raidPresetsSection = document.getElementById('raidPresetsSection');
-
-        tabRaid.addEventListener('click', () => {
-            currentMode = 'raid';
-            tabRaid.className = "px-5 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-rust-orange text-rust-orange flex items-center gap-2 transition";
-            tabCraft.className = "px-5 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center gap-2 transition";
-            raidSection.classList.remove('hidden');
-            raidPresetsSection.classList.remove('hidden');
-            craftSection.classList.add('hidden');
-            updateCalculations();
-        });
-
-        tabCraft.addEventListener('click', () => {
-            currentMode = 'craft';
-            tabCraft.className = "px-5 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-rust-orange text-rust-orange flex items-center gap-2 transition";
-            tabRaid.className = "px-5 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 flex items-center gap-2 transition";
-            craftSection.classList.remove('hidden');
-            raidSection.classList.add('hidden');
-            raidPresetsSection.classList.add('hidden');
-            updateCalculations();
-        });
-
-        /**
-         * Clipboard Copy for Discord
-         */
-        document.getElementById('btnCopyDiscord').addEventListener('click', () => {
-            const arsenal = calculateTotalArsenal();
-            const rawTotals = {};
-            const intermediates = {};
-            
-            for (const [itemId, qty] of Object.entries(arsenal)) {
-                if (qty > 0) breakdownItem(itemId, qty, rawTotals, intermediates);
-            }
-
-            let lines = ["【 Rust レイド/クラフト素材サマリー 】"];
-            
-            if (currentMode === 'raid') {
-                lines.push("🎯 破壊目標:");
-                let hasTarget = false;
-                RAID_TARGETS.forEach(t => {
-                    const count = targetCounts[t.id];
-                    if (count > 0) {
-                        lines.push(`・${t.name} × ${count}`);
-                        hasTarget = true;
-                    }
-                });
-                if (!hasTarget) lines.push("・指定なし");
-            }
-
-            lines.push("\n💣 必要兵器:");
-            let hasArsenal = false;
-            for (const [k, v] of Object.entries(arsenal)) {
-                if (v > 0) {
-                    lines.push(`・${RECIPES[k].name}: ${v}個`);
-                    hasArsenal = true;
-                }
-            }
-            if (!hasArsenal) lines.push("・なし");
-
-            lines.push("\n⛏️ 必要生素材:");
-            lines.push(`・硫黄: ${(rawTotals.sulfur || 0).toLocaleString()}`);
-            lines.push(`・木炭: ${(rawTotals.charcoal || 0).toLocaleString()}`);
-            lines.push(`・金属片: ${(rawTotals.metal_frag || 0).toLocaleString()}`);
-            lines.push(`・低質油: ${(rawTotals.lowgrade || 0).toLocaleString()}`);
-            if (rawTotals.pipe) lines.push(`・金属パイプ: ${rawTotals.pipe}本`);
-            if (rawTotals.techtrash) lines.push(`・電子部品: ${rawTotals.techtrash}個`);
-            if (intermediates.explosives) lines.push(`(中間素材: 爆薬 ${intermediates.explosives}個)`);
-
-            const fullText = lines.join('\n');
-
-            // Fallback clipboard method for iframe safety
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = fullText;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            try {
-                document.execCommand('copy');
-                showToast('Discord共有用テキストをコピーしました！');
-            } catch (err) {
-                console.error('Failed to copy', err);
-            }
-            document.body.removeChild(tempTextArea);
-        });
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            toast.classList.remove('translate-y-24', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-24', 'opacity-0');
-            }, 2500);
-        }
-
-        // Initialize App
-        window.onload = function() {
-            initTargetList();
-            initCraftItemList();
-            updateCalculations();
-        };
-    </script>
+    calculate();
+  </script>
 </body>
 </html>
