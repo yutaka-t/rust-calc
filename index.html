@@ -10,33 +10,41 @@
       margin: 0;
       padding: 0;
     }
-    body {
+    html, body {
+      height: 100%;
       background-color: #121417;
       color: #e5e7eb;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      padding: 20px;
-      line-height: 1.5;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
+    .wrapper {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    /* ヘッダー */
     .header {
       border-bottom: 2px solid #cd412b;
-      padding-bottom: 12px;
-      margin-bottom: 20px;
+      padding-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
     }
     .title-area h1 {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
       color: #ffffff;
       letter-spacing: 1px;
     }
     .title-area p {
-      font-size: 12px;
+      font-size: 11px;
       color: #9ca3af;
-      margin-top: 4px;
     }
     .btn-group {
       display: flex;
@@ -46,12 +54,12 @@
       background-color: #262a30;
       color: #e5e7eb;
       border: 1px solid #3f444e;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
       cursor: pointer;
       font-weight: bold;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
       user-select: none;
     }
     button:hover {
@@ -59,7 +67,7 @@
       border-color: #555c69;
     }
     button:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
     .btn-primary {
       background-color: #cd412b;
@@ -69,18 +77,19 @@
     .btn-primary:hover {
       background-color: #b33622;
     }
+
+    /* プリセット */
     .preset-container {
       background-color: #1a1d24;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      padding: 10px 14px;
+      border-radius: 6px;
       border: 1px solid #282d37;
     }
     .preset-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: bold;
       color: #9ca3af;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       text-transform: uppercase;
     }
     .presets {
@@ -89,124 +98,154 @@
       gap: 8px;
     }
     .preset-btn {
-      font-size: 12px;
-      padding: 6px 10px;
+      font-size: 11px;
+      padding: 5px 10px;
       background: #232730;
     }
-    .main-grid {
+
+    /* メイン2カラム配置 */
+    .content-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: 1.2fr 1fr;
       gap: 16px;
     }
+    @media (max-width: 680px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .card {
       background-color: #1a1d24;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid #282d37;
-      padding: 16px;
+      padding: 14px;
     }
     .card-title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
       color: #f3f4f6;
       margin-bottom: 12px;
       border-left: 3px solid #cd412b;
       padding-left: 8px;
     }
-    .weapon-select-wrap {
-      margin-bottom: 16px;
+
+    /* 入力フォーム */
+    .form-group {
+      margin-bottom: 12px;
     }
-    .weapon-select-wrap label {
+    .form-group label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       color: #9ca3af;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     select {
       width: 100%;
       background: #232730;
       border: 1px solid #3f444e;
-      color: #fff;
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 14px;
+      color: #ffffff;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 13px;
       outline: none;
+    }
+    select option {
+      background: #1a1d24;
+      color: #ffffff;
+    }
+
+    /* 破壊目標一覧 */
+    .target-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     .target-item {
       background: #222630;
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 10px;
+      border-radius: 4px;
+      padding: 8px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .target-info .name {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
     }
     .target-info .meta {
       font-size: 11px;
       color: #9ca3af;
-      margin-top: 2px;
     }
     .counter {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
     .counter button {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
+      background: #2d323c;
     }
     .counter input {
-      width: 48px;
-      height: 32px;
+      width: 44px;
+      height: 28px;
       text-align: center;
       background: #14171c;
       border: 1px solid #3f444e;
       color: #fff;
       border-radius: 4px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 13px;
+    }
+
+    /* 結果表示エリア */
+    .result-section {
+      margin-bottom: 16px;
     }
     .result-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #282d37;
-      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid #232731;
+      font-size: 12px;
     }
     .result-row:last-child {
       border-bottom: none;
     }
     .result-row .res-name {
-      color: #d1d5db;
+      color: #9ca3af;
     }
     .result-row .res-val {
       font-weight: bold;
-      color: #fbbf24;
+      color: #f3f4f6;
     }
-    .total-sulfur {
-      margin-top: 16px;
-      background: #2d1810;
-      border: 1px solid #7c2d12;
+    .res-val.highlight {
+      color: #38bdf8;
+      font-size: 13px;
+    }
+
+    .total-sulfur-box {
+      background: #29140f;
+      border: 1px solid #852a18;
       padding: 12px;
-      border-radius: 6px;
+      border-radius: 4px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-top: 10px;
     }
-    .total-sulfur .label {
+    .total-sulfur-box .label {
+      font-size: 13px;
       font-weight: bold;
       color: #fdba74;
-      font-size: 14px;
     }
-    .total-sulfur .val {
+    .total-sulfur-box .val {
       font-size: 18px;
       font-weight: 800;
       color: #f97316;
@@ -215,31 +254,36 @@
 </head>
 <body>
 
-  <div class="header">
-    <div class="title-area">
-      <h1>RUST RAID & CRAFT SIMULATOR</h1>
-      <p>拠点破壊＆爆薬クラフト総素材計算ツール</p>
+  <div class="wrapper">
+    <!-- ヘッダー -->
+    <div class="header">
+      <div class="title-area">
+        <h1>RUST RAID & CRAFT SIMULATOR</h1>
+        <p>拠点破壊＆爆薬クラフト総素材計算ツール</p>
+      </div>
+      <div class="btn-group">
+        <button id="btnReset">リセット</button>
+        <button class="btn-primary" id="btnCopy">Discord用にコピー</button>
+      </div>
     </div>
-    <div class="btn-group">
-      <button id="btnReset">リセット</button>
-      <button class="btn-primary" id="btnCopy">Discord用にコピー</button>
-    </div>
-  </div>
 
-  <div class="preset-container">
-    <div class="preset-title">クイックプリセット</div>
-    <div class="presets">
-      <button class="preset-btn" data-preset='{"garage": 2, "sheet": 1}'>🚪 ガレージ2枚 + 板金1枚 (小拠点)</button>
-      <button class="preset-btn" data-preset='{"stone_wall": 2}'>🧱 石壁 2枚 (ハニカム貫通)</button>
-      <button class="preset-btn" data-preset='{"armored": 1}'>🛡️ 装甲ドア 1枚 (最深部TC)</button>
+    <!-- プリセット -->
+    <div class="preset-container">
+      <div class="preset-title">クイックプリセット</div>
+      <div class="presets">
+        <button class="preset-btn" data-preset='{"garage": 2, "sheet": 1}'>🚪 ガレージ2枚 + 板金1枚 (小拠点)</button>
+        <button class="preset-btn" data-preset='{"stone_wall": 2}'>🧱 石壁 2枚 (ハニカム貫通)</button>
+        <button class="preset-btn" data-preset='{"armored": 1}'>🛡️ 装甲ドア 1枚 (最深部TC)</button>
+      </div>
     </div>
-  </div>
 
-  <div class="main-grid">
-    <!-- 破壊目標選択 -->
-    <div class="card">
-      <div class="card-title">破壊目標の選択</div>
-      
-      <div class="weapon-select-wrap">
-        <label for="mainWeapon">使用武器</label>
-        <select id="mainWeapon">
+    <!-- メイングリッド -->
+    <div class="content-grid">
+      <!-- 目標入力側 -->
+      <div class="card">
+        <div class="card-title">破壊目標の選択</div>
+        
+        <div class="form-group">
+          <label for="mainWeapon">使用武器</label>
+          <select id="mainWeapon">
+            <option value="rocket">ロ
