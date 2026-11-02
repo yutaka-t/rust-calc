@@ -52,10 +52,14 @@
       cursor: pointer;
       font-weight: bold;
       transition: all 0.2s;
+      user-select: none;
     }
     button:hover {
       background-color: #32373f;
       border-color: #555c69;
+    }
+    button:active {
+      transform: scale(0.98);
     }
     .btn-primary {
       background-color: #cd412b;
@@ -151,23 +155,24 @@
       gap: 6px;
     }
     .counter button {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 18px;
     }
     .counter input {
-      width: 44px;
-      height: 28px;
+      width: 48px;
+      height: 32px;
       text-align: center;
       background: #14171c;
       border: 1px solid #3f444e;
       color: #fff;
       border-radius: 4px;
       font-weight: bold;
+      font-size: 14px;
     }
     .result-row {
       display: flex;
@@ -216,17 +221,17 @@
       <p>拠点破壊＆爆薬クラフト総素材計算ツール</p>
     </div>
     <div class="btn-group">
-      <button onclick="resetAll()">リセット</button>
-      <button class="btn-primary" onclick="copyDiscord()">Discord用にコピー</button>
+      <button id="btnReset">リセット</button>
+      <button class="btn-primary" id="btnCopy">Discord用にコピー</button>
     </div>
   </div>
 
   <div class="preset-container">
     <div class="preset-title">クイックプリセット</div>
     <div class="presets">
-      <button class="preset-btn" onclick="applyPreset({garage: 2, sheet: 1})">🚪 ガレージ2枚 + 板金1枚 (小拠点)</button>
-      <button class="preset-btn" onclick="applyPreset({stone_wall: 2})">🧱 石壁 2枚 (ハニカム貫通)</button>
-      <button class="preset-btn" onclick="applyPreset({armored: 1})">🛡️ 装甲ドア 1枚 (最深部TC)</button>
+      <button class="preset-btn" data-preset='{"garage": 2, "sheet": 1}'>🚪 ガレージ2枚 + 板金1枚 (小拠点)</button>
+      <button class="preset-btn" data-preset='{"stone_wall": 2}'>🧱 石壁 2枚 (ハニカム貫通)</button>
+      <button class="preset-btn" data-preset='{"armored": 1}'>🛡️ 装甲ドア 1枚 (最深部TC)</button>
     </div>
   </div>
 
@@ -236,179 +241,5 @@
       <div class="card-title">破壊目標の選択</div>
       
       <div class="weapon-select-wrap">
-        <label>使用武器</label>
-        <select id="mainWeapon" onchange="calculate()">
-          <option value="rocket">ロケット弾 主軸</option>
-          <option value="c4">C4 主軸</option>
-          <option value="satchel">サッチェル電荷 主軸</option>
-          <option value="explo">炸裂弾（エクスプローシブ）主軸</option>
-        </select>
-      </div>
-
-      <div class="target-item">
-        <div class="target-info">
-          <div class="name">木のドア</div>
-          <div class="meta">200 HP</div>
-        </div>
-        <div class="counter">
-          <button onclick="changeVal('wood_door', -1)">-</button>
-          <input type="number" id="wood_door" value="0" min="0" onchange="calculate()">
-          <button onclick="changeVal('wood_door', 1)">+</button>
-        </div>
-      </div>
-
-      <div class="target-item">
-        <div class="target-info">
-          <div class="name">板金ドア</div>
-          <div class="meta">250 HP</div>
-        </div>
-        <div class="counter">
-          <button onclick="changeVal('sheet', -1)">-</button>
-          <input type="number" id="sheet" value="0" min="0" onchange="calculate()">
-          <button onclick="changeVal('sheet', 1)">+</button>
-        </div>
-      </div>
-
-      <div class="target-item">
-        <div class="target-info">
-          <div class="name">ガレージドア</div>
-          <div class="meta">600 HP</div>
-        </div>
-        <div class="counter">
-          <button onclick="changeVal('garage', -1)">-</button>
-          <input type="number" id="garage" value="0" min="0" onchange="calculate()">
-          <button onclick="changeVal('garage', 1)">+</button>
-        </div>
-      </div>
-
-      <div class="target-item">
-        <div class="target-info">
-          <div class="name">装甲ドア</div>
-          <div class="meta">800 HP</div>
-        </div>
-        <div class="counter">
-          <button onclick="changeVal('armored', -1)">-</button>
-          <input type="number" id="armored" value="0" min="0" onchange="calculate()">
-          <button onclick="changeVal('armored', 1)">+</button>
-        </div>
-      </div>
-
-      <div class="target-item">
-        <div class="target-info">
-          <div class="name">石壁 / 石天井</div>
-          <div class="meta">500 HP</div>
-        </div>
-        <div class="counter">
-          <button onclick="changeVal('stone_wall', -1)">-</button>
-          <input type="number" id="stone_wall" value="0" min="0" onchange="calculate()">
-          <button onclick="changeVal('stone_wall', 1)">+</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 必要弾薬 & 素材計算結果 -->
-    <div class="card">
-      <div class="card-title">必要弾薬</div>
-      <div id="ammoResults">
-        <div class="result-row"><span class="res-name">選択された武器数</span><span class="res-val" id="resAmmo">0</span></div>
-      </div>
-
-      <div class="card-title" style="margin-top: 24px;">必要原材料（生素材）</div>
-      <div class="result-row"><span class="res-name">硫黄（Sulfur）</span><span class="res-val" id="resSulfur">0</span></div>
-      <div class="result-row"><span class="res-name">木炭（Charcoal）</span><span class="res-val" id="resCharcoal">0</span></div>
-      <div class="result-row"><span class="res-name">金属片（Metal Frags）</span><span class="res-val" id="resFrags">0</span></div>
-      <div class="result-row"><span class="res-name">上質金属（HQM）</span><span class="res-val" id="resHqm">0</span></div>
-      <div class="result-row"><span class="res-name">パイプ（Pipes）</span><span class="res-val" id="resPipes">0</span></div>
-
-      <div class="total-sulfur">
-        <span class="label">総硫黄コスト:</span>
-        <span class="val" id="totalSulfurBadge">0</span>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // 目標ごとの耐久コスト表 [rocket, c4, satchel, 5.56explo]
-    const COSTS = {
-      wood_door:   { rocket: 1,  c4: 1, satchel: 2,  explo: 18 },
-      sheet:       { rocket: 2,  c4: 1, satchel: 4,  explo: 63 },
-      garage:      { rocket: 3,  c4: 2, satchel: 9,  explo: 150 },
-      armored:     { rocket: 4,  c4: 2, satchel: 12, explo: 200 },
-      stone_wall:  { rocket: 4,  c4: 2, satchel: 10, explo: 185 }
-    };
-
-    // 武器1つあたりの生素材コスト (火薬1=硫黄2+木炭3, 爆薬1=火薬50+硫黄10+低質10+鉄10)
-    const WEAPON_RAW = {
-      rocket:  { sulfur: 1400, charcoal: 1950, frags: 100, hqm: 2, pipes: 2 },
-      c4:      { sulfur: 2200, charcoal: 3000, frags: 200, hqm: 0, pipes: 0 },
-      satchel: { sulfur: 480,  charcoal: 720,  frags: 80,  hqm: 0, pipes: 0 },
-      explo:   { sulfur: 25,   charcoal: 30,   frags: 5,   hqm: 0, pipes: 0 } // 1発あたり
-    };
-
-    function changeVal(id, delta) {
-      const el = document.getElementById(id);
-      let v = parseInt(el.value) || 0;
-      v = Math.max(0, v + delta);
-      el.value = v;
-      calculate();
-    }
-
-    function applyPreset(data) {
-      resetAll(false);
-      for (const [k, v] of Object.entries(data)) {
-        const el = document.getElementById(k);
-        if (el) el.value = v;
-      }
-      calculate();
-    }
-
-    function resetAll(triggerCalc = true) {
-      ['wood_door', 'sheet', 'garage', 'armored', 'stone_wall'].forEach(id => {
-        document.getElementById(id).value = 0;
-      });
-      if (triggerCalc) calculate();
-    }
-
-    function calculate() {
-      const weapon = document.getElementById('mainWeapon').value;
-      let totalAmmo = 0;
-
-      for (const [key, costMap] of Object.entries(COSTS)) {
-        const count = parseInt(document.getElementById(key).value) || 0;
-        totalAmmo += count * costMap[weapon];
-      }
-
-      const raw = WEAPON_RAW[weapon];
-      const s = totalAmmo * raw.sulfur;
-      const c = totalAmmo * raw.charcoal;
-      const f = totalAmmo * raw.frags;
-      const h = totalAmmo * raw.hqm;
-      const p = totalAmmo * raw.pipes;
-
-      const weaponNames = { rocket: 'ロケット弾', c4: 'C4', satchel: 'サッチェル', explo: '炸裂弾' };
-      document.getElementById('resAmmo').textContent = `${totalAmmo} 発 (${weaponNames[weapon]})`;
-      document.getElementById('resSulfur').textContent = s.toLocaleString();
-      document.getElementById('resCharcoal').textContent = c.toLocaleString();
-      document.getElementById('resFrags').textContent = f.toLocaleString();
-      document.getElementById('resHqm').textContent = h.toLocaleString();
-      document.getElementById('resPipes').textContent = p.toLocaleString();
-      document.getElementById('totalSulfurBadge').textContent = `${s.toLocaleString()} 硫黄`;
-    }
-
-    function copyDiscord() {
-      const weapon = document.getElementById('mainWeapon').value;
-      const weaponNames = { rocket: 'ロケット弾', c4: 'C4', satchel: 'サッチェル', explo: '炸裂弾' };
-      const ammo = document.getElementById('resAmmo').textContent;
-      const sulfur = document.getElementById('resSulfur').textContent;
-      const charcoal = document.getElementById('resCharcoal').textContent;
-
-      const text = `【レイド素材計算】\n主軸: ${ammo}\n必要硫黄: ${sulfur} / 木炭: ${charcoal}`;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Discord用テキストをクリップボードにコピーしました！');
-      });
-    }
-
-    calculate();
-  </script>
-</body>
-</html>
+        <label for="mainWeapon">使用武器</label>
+        <select id="mainWeapon">
